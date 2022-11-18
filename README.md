@@ -4,7 +4,6 @@ Simplified adaption from [graiz's cbot](https://github.com/graiz/cbot).
 
 Type plain English to cbot and he will will output the CLI command as a string, or execute the command if you add the -x modifier.
 
-
 ### Outputting string
 ![Example of language completion](cbot_1.png)
 
@@ -20,5 +19,3 @@ Type plain English to cbot and he will will output the CLI command as a string, 
 export PATH=/home/usr/cbot_directory_location:$PATH
 
 Enjoy ;)
-  
-
