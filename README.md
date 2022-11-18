@@ -14,7 +14,7 @@ Type plain English to cbot and he will will output the CLI command as a string, 
 ## Instalation
 
 1. pip3 install openai
-2. add API as environment variable "OPENAI_API_KEY" or paste plain text in code.
+2. Add API as environment variable "OPENAI_API_KEY" or paste plain text in code.
 3. chmod +x cbot
 4. Add to existing $PATH bin, or add new location to $PATH by add the following to your .bashrc or .zshrc
 export PATH=/home/usr/cbot_directory_location:$PATH
