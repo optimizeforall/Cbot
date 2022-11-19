@@ -29,7 +29,7 @@ def callGPT(question):
 
   response = openai.Completion.create(
     model="text-davinci-002",
-    prompt= "Tell me what you want to do and I will give the unix command.\n\nQ:  copy a file\ncp filename.txt destination_filename.txt\nQ: duplicate a folder?\ncp -a source_folder/ destination_folder/\nQ: display a calendar\ncal\nQ: convert a .heic file to jpg\nconvert source.heic destination.jpg\nQ: navigate to desktop\ncd ~/Desktop/\nQ: shutdown computer\nsudo shutdown -h now\nQ: check how much space is left on this computer\ndf -h\nQ: find x.txt on system\nfind . -name x.txt\nQ: delete entire dir and its contents\nrm -rf dir\nQ:  list the files in a directory\nls\nQ:" + question + "\nA: ",
+    prompt= "Tell me what you want to do and I will give the unix command.\n\nQ:  copy a file\ncp filename.txt destination_filename.txt\nQ: duplicate a folder?\ncp -a source_folder/ destination_folder/\nQ: display a calendar\ncal\nQ: convert a .heic file to jpg\nconvert source.heic destination.jpg\nQ: navigate to desktop\ncd ~/Desktop/\nQ: shutdown computer\nsudo shutdown -h now\nQ: check how much space is left on this computer\ndf -h\nQ: find x.txt on system\nfind . -name x.txt\nQ: delete entire dir and its contents\nrm -rf dir\nQ: list the files in a directory\nls\nQ: " + question + "\nA: ",
     temperature=0.0,
     max_tokens=256,
     top_p=1,
