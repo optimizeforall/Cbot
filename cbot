@@ -3,11 +3,14 @@ import os
 import openai
 import sys    
 import shutil 
+import signal 
 
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 execute = False
 copy = False
 help_needed = False
-
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 def main():
 
@@ -23,7 +26,6 @@ def main():
   output(response)
 
 def callGPT(question):
-  openai.api_key = os.getenv("OPENAI_API_KEY")
 
   response = openai.Completion.create(
     model="text-davinci-002",
@@ -57,7 +59,7 @@ def determineFlags(argv):
         print("Error: -h option cannot be used with -x or -c")
         sys.exit(1)      
       if help_needed:
-        print("Usage: cbot [-x] [-c]\n\n-x\tExecute command\n-c\tCopy command to clipboard")
+        print("Usage: cbot [-x] [-c]\n\n-x\tExecute command: CTRL+C to cancel command\n-c\tCopy command to clipboard: Requires xclip")
         sys.exit()
   else:
       print("Error: No question specified")
@@ -70,6 +72,12 @@ def output(response):
     # print command that will be executed in green bold
     print("\033[92m" + "Press ENTER to execute: " +"\033[0m"+ "\033[1;32m" + response + "\033[0m")
 
+    # if user presses enter, execute command()
+    if input() == "":
+      os.system(response)
+    else:
+      sys.exit(1)
+
   # if -c in argument, copy the command to clipboard
   if copy:
       # check if xclip is installed using subprocess
@@ -80,7 +88,8 @@ def output(response):
       else:
         # copy response to clipboard using shutil
         os.system("echo " + response + " | xclip -selection clipboard")
-        print("\033[92m" + "Command copied to clipboard: "  + "\033[0m"+ "\033[1;32m" + response + "\033[0m")
+        print( "\033[1;32m" + response + "\033[0m")
+        print("\033[92m" + "Command copied to clipboard."  + "\033[0m")
   
   if not copy and not execute:
     # print response in bold green 
@@ -89,3 +98,5 @@ def output(response):
 
 if __name__ == "__main__":
   main()
+
+# Handle Ctrl+C
