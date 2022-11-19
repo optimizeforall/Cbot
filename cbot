@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import os
 import openai
 import sys    
@@ -9,6 +8,19 @@ execute = False
 copy = False
 help_needed = False
 
+
+def main():
+
+  # determine if -x, -c, or -h is passed
+  determineFlags(sys.argv)
+  # question is last element [2 or 3] of sys.argv
+  question = sys.argv[-1]
+  # call GPT-3 davinci model
+  response = callGPT(question)
+  # remove \n from response
+  response = response['choices'][0]['text'].replace("\n", "").strip()
+  # output response, execute if -x, copy if -c
+  output(response)
 
 def callGPT(question):
   openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -74,23 +86,6 @@ def output(response):
     # print response in bold green 
     print("\033[1;32m" + response + "\033[0m")
 
-def main():
-
-  determineFlags(sys.argv)
-    
-  # question is last element [2 or 3] of sys.argv
-  question = sys.argv[-1]
-
-  # call GPT-3 davinci model
-  response = callGPT(question)
-
-  # remove \n from response
-  response = response['choices'][0]['text'].replace("\n", "").strip()
-
-  output(response)
-
 
 if __name__ == "__main__":
   main()
-
-
