@@ -3,20 +3,45 @@
 import os
 import openai
 import sys    
+import shutil 
+
+
+# TODO:
+# - add -x option to execute command#
+# - add -c option to copy command to clipboard
+# - add -h option to print help
+# - add enter to execute command
+
 
 def main():
-  # if no argument is passed, print error and exit
-  if len(sys.argv) < 2:
-      print("Error: No input file specified")
-      sys.exit(1)
+  execute = False
+  copy = False
+  help_needed = False
 
-  # set bool execute to false if no -x is passed
-  if sys.argv[1] == "-x":
-      execute = True
-      question= sys.argv[2]
+  # if -x option is passed, set execute to True
+  # if -c option is passed, set copy to True
+  # if -h option is passed, set help to True
+  # if -h and -x or -c are passed, print error and exit
+  if len(sys.argv) > 1:
+      if "-x" in sys.argv:
+        execute = True
+      if "-c" in sys.argv:
+        copy = True
+      if "-h" in sys.argv:
+        help_needed = True
+      if "-h" in sys.argv and ("-x" in sys.argv or "-c" in sys.argv):
+        print("Error: -h option cannot be used with -x or -c")
+        sys.exit(1)
+        
+      if help_needed:
+        print("Usage: cbot [-x] [-c]\n\n-x\tExecute command\n-c\tCopy command to clipboard")
+        sys.exit()
   else:
-      execute = False
-      question= sys.argv[1]  
+      print("Error: No question specified")
+      sys.exit(1)
+    
+  # question equals content within
+  question = sys.argv[-1]
 
   openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -34,12 +59,26 @@ def main():
   response = response['choices'][0]['text'].replace("\n", "").strip()
 
   # if -x in argument, execute the command
-  if "-x" in sys.argv:
-    print('Executing: ' + response)
-    os.system(response)
-  else:
-    print(response)
-
-
+  if execute:
+    # print command that will be executed in green bold
+    print("\033[92m" + "Press ENTER to execute: " +"\033[0m"+ "\033[1;32m" + response + "\033[0m")
+ 
+  # if -c in argument, copy the command to clipboard
+  if copy:
+      # check if xclip is installed using subprocess
+      if shutil.which("xclip") is None:
+        # print 'Copying to clipboard requires xclip to be installed, please install xclip and try again' in red
+        print('\033[91m' + "Copying to clipboard requires xclip to be installed, please install xclip and try again" + '\033[0m')
+        sys.exit(1)
+      else:
+        # copy response to clipboard using shutil
+        os.system("echo " + response + " | xclip -selection clipboard")
+        print("\033[92m" + "Command copied to clipboard: "  + "\033[0m"+ "\033[1;32m" + response + "\033[0m")
+  
+  if not copy and not execute:
+    # print response in bold green 
+    print("\033[1;32m" + response + "\033[0m")
+        
+  
 if __name__ == "__main__":
   main()
