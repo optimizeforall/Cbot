@@ -5,11 +5,12 @@ import sys
 import shutil 
 import signal 
 
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
 execute = False
 copy = False
 help_needed = False
+
+# Handle Ctrl+C
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 def main():
@@ -98,5 +99,3 @@ def output(response):
 
 if __name__ == "__main__":
   main()
-
-# Handle Ctrl+C
