@@ -1,10 +1,11 @@
-# Completion Bot
+# CLI Completion Bot
 
-Simplified adaption from [graiz's cbot](https://github.com/graiz/cbot). 
+Inspired and adapted from [graiz's cbot](https://github.com/graiz/cbot).
 
-Type plain English to cbot and he will will output the CLI command as a string, or execute the command if you add the -x modifier.
+Type plain English into cbot and it will output the CLI command as a string, execute the command, or copy it to clipboard. 
 
-### Outputting string
+### Outputting command as string
+
 ![Example of language completion](cbot_1.png)
 
 ### Execution 

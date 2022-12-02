@@ -15,6 +15,8 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 def main():
 
+
+  # set sys.argv[1] to 'how much space is left on this computer'
   # determine if -x, -c, or -h is passed
   determineFlags(sys.argv)
   # question is last element [2 or 3] of sys.argv
@@ -71,7 +73,7 @@ def output(response):
     # if -x in argument, execute the command
   if execute:
     # print command that will be executed in green bold
-    print("\033[92m" + "Press ENTER to execute: " +"\033[0m"+ "\033[1;32m" + response + "\033[0m")
+    print("\033[91m" + "Press ENTER to execute: " +"\033[0m"+ "\033[1;34m" + response + "\033[0m")
 
     # if user presses enter, execute command()
     if input() == "":
@@ -87,14 +89,16 @@ def output(response):
         print('\033[91m' + "Copying to clipboard requires xclip to be installed, please install xclip and try again" + '\033[0m')
         sys.exit(1)
       else:
+
         # copy response to clipboard using shutil
         os.system("echo " + response + " | xclip -selection clipboard")
-        print( "\033[1;32m" + response + "\033[0m")
-        print("\033[92m" + "Command copied to clipboard."  + "\033[0m")
+        print( "\033[1;34m" + response + "\033[0m")
+        print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m\n")
   
   if not copy and not execute:
-    # print response in bold green 
-    print("\033[1;32m" + response + "\033[0m")
+    # print response in red
+    print("\033[1;34m" + response + "\033[0m\n")
+    # print(response + '...')
 
 
 if __name__ == "__main__":
