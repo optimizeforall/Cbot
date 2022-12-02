@@ -93,11 +93,11 @@ def output(response):
         # copy response to clipboard using shutil
         os.system("echo " + response + " | xclip -selection clipboard")
         print( "\033[1;34m" + response + "\033[0m")
-        print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m\n")
+        print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m")
   
   if not copy and not execute:
     # print response in red
-    print("\033[1;34m" + response + "\033[0m\n")
+    print("\033[1;34m" + response + "\033[0m")
     # print(response + '...')
 
 
