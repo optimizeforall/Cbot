@@ -14,22 +14,22 @@ help_needed = False
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 def main():
-
-
-  # set sys.argv[1] to 'how much space is left on this computer'
   # determine if -x, -c, or -h is passed
   determineFlags(sys.argv)
+
   # question is last element [2 or 3] of sys.argv
   question = sys.argv[-1]
+
   # call GPT-3 davinci model
   response = callGPT(question)
+
   # remove \n from response
   response = response['choices'][0]['text'].replace("\n", "").strip()
+
   # output response, execute if -x, copy if -c
   output(response)
 
 def callGPT(question):
-
   response = openai.Completion.create(
     model="text-davinci-002",
     prompt= "Tell me what you want to do and I will give the unix command.\n\nQ:  copy a file\ncp filename.txt destination_filename.txt\nQ: duplicate a folder?\ncp -a source_folder/ destination_folder/\nQ: display a calendar\ncal\nQ: convert a .heic file to jpg\nconvert source.heic destination.jpg\nQ: navigate to desktop\ncd ~/Desktop/\nQ: shutdown computer\nsudo shutdown -h now\nQ: check how much space is left on this computer\ndf -h\nQ: find x.txt on system\nfind . -name x.txt\nQ: delete entire dir and its contents\nrm -rf dir\nQ: list the files in a directory\nls\nQ: " + question + "\nA: ",
@@ -91,7 +91,7 @@ def output(response):
       else:
 
         # copy response to clipboard using shutil
-        os.system("echo " + response + " | xclip -selection clipboard")
+        os.system("echo \"" + response + "\" | xclip -selection clipboard")
         print( "\033[1;34m" + response + "\033[0m")
         print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m")
   
