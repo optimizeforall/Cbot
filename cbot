@@ -4,106 +4,111 @@ import openai
 import sys    
 import shutil 
 import signal 
+import argparse
+from openai import OpenAI
+
+# Color definitions for output formatting
+RED = "\033[91m"    # Errors
+BLUE = "\033[94m"   # Main output
+GREEN = "\033[92m"  # Success messages
+YELLOW = "\033[93m" # Prompts
+RESET = "\033[0m"   # Reset formatting
+BOLD = "\033[1m"    # Bold text
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-execute = False
-copy = False
-help_needed = False
 
-# Handle Ctrl+C
+# Handle Ctrl+C gracefully
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+
+def parse_arguments():
+    # Set up command-line argument parser
+    parser = argparse.ArgumentParser(description="Unix command assistant and general question answerer")
+    parser.add_argument("query", nargs="?", help="The query for Unix commands or questions")
+    parser.add_argument("-q", "--question", action="store_true", help="Ask a general question instead of requesting a Unix command")
+    parser.add_argument("-x", "--execute", action="store_true", help="Execute the command (only for Unix command mode)")
+    parser.add_argument("-c", "--copy", action="store_true", help="Copy the response to clipboard")
+    parser.add_argument("-m", "--model", default="gpt-4o-mini", help="GPT model to use")
+    return parser.parse_args()
+
 def main():
-  # determine if -x, -c, or -h is passed
-  determineFlags(sys.argv)
-  
-  # question is last element [2 or 3] of sys.argv
-  question = sys.argv[-1]
-
-  # call GPT-3 davinci model
-  response = callGPT(question)
-
-  # remove \n from response
-  # response = response['choices'][0]['message']['content'].strip()
-
-  # output response, execute if -x, copy if -c
-  output(response)
-  
-
-def callGPT(question):
-  response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-      {"role": "system", "content": "You provide Unix commands. Only provide the command, **nothing** else, no newline, no ticks around code. As if you were responding to a command line prompt."},
-      {"role": "user", "content": f"Tell me the Unix command to {question}"}
-    ],
-    temperature=0.0,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0,
-  )
-
-  return response['choices'][0]['message']['content'].strip()
-
-def determineFlags(argv):
-  global execute
-  global copy
-  global help_needed
-
-  # if -x option is passed, set execute to True
-  # if -c option is passed, set copy to True
-  # if -h option is passed, set help to True
-  # if -h and -x or -c are passed, print error and exit
-  if len(argv) > 1:
-      if "-x" in argv:
-        execute = True
-      if "-c" in argv:
-        copy = True
-      if "-h" in argv:
-        help_needed = True
-      if "-h" in argv and ("-x" in argv or "-c" in argv):
-        print("Error: -h option cannot be used with -x or -c")
-        sys.exit(1)      
-      if help_needed:
-        print("Usage: cbot [-x] [-c]\n\n-x\tExecute command: CTRL+C to cancel command\n-c\tCopy command to clipboard: Requires xclip")
-        sys.exit()
-  else:
-      print("Error: No question specified")
-      sys.exit(1)
-
-
-def output(response):
-    # if -x in argument, execute the command
-  if execute:
-    # print command that will be executed in green bold
-    print("\033[91m" + "Press ENTER to execute: " +"\033[0m"+ "\033[1;34m" + response + "\033[0m")
-
-    # if user presses enter, execute command()
-    if input() == "":
-      os.system(response)
-    else:
-      sys.exit(1)
-
-  # if -c in argument, copy the command to clipboard
-  if copy:
-      # check if xclip is installed using subprocess
-      if shutil.which("xclip") is None:
-        # print 'Copying to clipboard requires xclip to be installed, please install xclip and try again' in red
-        print('\033[91m' + "Copying to clipboard requires xclip to be installed, please install xclip and try again" + '\033[0m')
+    args = parse_arguments()
+    
+    if not args.query:
+        print("Please provide a query. Use -h for help.")
         sys.exit(1)
-      else:
+    
+    # Call appropriate GPT function based on query type
+    if args.question:
+        response = call_gpt_question(args.query, model=args.model)
+    else:
+        response = call_gpt_command(args.query, model=args.model)
+    
+    output(response, args)
 
-        # copy response to clipboard using shutil
-        os.system("echo \"" + response + "\" | xclip -selection clipboard")
-        print( "\033[1;34m" + response + "\033[0m")
-        print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m")
-  
-  if not copy and not execute:
-    # print response in blue (changed from red to match other outputs)
-    print("\033[1;34m" + response + "\033[0m")
-    # print(response + '...')
+def get_system_info():
+    import platform
+    import distro
+
+    system = platform.system()
+    if system == "Linux":
+        distribution = distro.name(pretty=True)
+        version = distro.version()
+        return f"Linux Distribution: {distribution}, Version: {version}"
+    elif system == "Darwin":
+        mac_version = platform.mac_ver()[0]
+        return f"macOS Version: {mac_version}"
+    elif system == "Windows":
+        win_version = platform.win32_ver()[0]
+        return f"Windows Version: {win_version}"
+    else:
+        return f"Unknown OS: {system}"
+
+def call_gpt_command(query, model="gpt-4o-mini"):
+    # Call GPT for Unix command suggestions
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a Unix command assistant. Only provide command line commands as responses, without any explanations, back ticks, or anything except command line input. System info: " + get_system_info()},
+            {"role": "user", "content": query}
+        ]
+    )
+    return response.choices[0].message.content
+
+def call_gpt_question(question, model="gpt-4o-mini"):
+    # Call GPT for general questions
+    response = openai.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant. Provide concise and accurate answers to questions. System info: " + get_system_info()},
+            {"role": "user", "content": question}
+        ],
+    )
+    return response.choices[0].message.content
+
+def output(response, args):
+    if args.execute and not args.question:
+        # Execute Unix command if requested
+        print(f"{YELLOW}{BOLD}Press ENTER to execute:{RESET} {BLUE}{response}{RESET}")
+        if input() == "":
+            os.system(response)
+        else:
+            sys.exit(0)
+
+    if args.copy:
+        # Copy response to clipboard if requested
+        if shutil.which("xclip") is None:
+            print(f"{RED}Copying to clipboard requires xclip to be installed, please install xclip and try again{RESET}")
+            sys.exit(1)
+        os.system(f"echo \"{response}\" | xclip -selection clipboard")
+        print(f"{BLUE}{response}{RESET}")
+        print(f"{GREEN}Response copied to clipboard.{RESET}")
+    
+    if not args.copy and not (args.execute and not args.question):
+        # Print response if not copying or executing
+        print(f"{BLUE}{response}{RESET}")
 
 
 if __name__ == "__main__":
-  main()
+    main()
