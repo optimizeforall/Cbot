@@ -16,7 +16,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 def main():
   # determine if -x, -c, or -h is passed
   determineFlags(sys.argv)
-
+  
   # question is last element [2 or 3] of sys.argv
   question = sys.argv[-1]
 
@@ -24,15 +24,19 @@ def main():
   response = callGPT(question)
 
   # remove \n from response
-  response = response['choices'][0]['text'].replace("\n", "").strip()
+  # response = response['choices'][0]['message']['content'].strip()
 
   # output response, execute if -x, copy if -c
   output(response)
+  
 
 def callGPT(question):
-  response = openai.Completion.create(
-    model="text-davinci-003",
-    prompt= "Tell me what you want to do and I will give the unix command.\n\nQ:  copy a file\ncp filename.txt destination_filename.txt\nQ: duplicate a folder?\ncp -a source_folder/ destination_folder/\nQ: display a calendar\ncal\nQ: convert a .heic file to jpg\nconvert source.heic destination.jpg\nQ: navigate to desktop\ncd ~/Desktop/\nQ: shutdown computer\nsudo shutdown -h now\nQ: check how much space is left on this computer\ndf -h\nQ: find x.txt on system\nfind . -name x.txt\nQ: delete entire dir and its contents\nrm -rf dir\nQ: list the files in a directory\nls\nQ: " + question + "\nA: ",
+  response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+      {"role": "system", "content": "You provide Unix commands. Only provide the command, **nothing** else, no newline, no ticks around code. As if you were responding to a command line prompt."},
+      {"role": "user", "content": f"Tell me the Unix command to {question}"}
+    ],
     temperature=0.0,
     max_tokens=256,
     top_p=1,
@@ -40,7 +44,7 @@ def callGPT(question):
     presence_penalty=0,
   )
 
-  return response
+  return response['choices'][0]['message']['content'].strip()
 
 def determineFlags(argv):
   global execute
@@ -96,7 +100,7 @@ def output(response):
         print("\033[1;34m" + "Command copied to clipboard."  + "\033[0m")
   
   if not copy and not execute:
-    # print response in red
+    # print response in blue (changed from red to match other outputs)
     print("\033[1;34m" + response + "\033[0m")
     # print(response + '...')
 
